@@ -1,0 +1,14 @@
+# Logs locales de auditoría
+*.log
+win_kiosk_optimizer.log
+
+# Instaladores y temporales descargados por el script
+windows/*.exe
+*.exe
+*.zip
+*.tvopt
+*.tmp
+
+# Caché de Python
+__pycache__/
+*.py[cod]
