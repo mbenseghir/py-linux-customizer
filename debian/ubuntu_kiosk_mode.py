@@ -188,7 +188,7 @@ def hide_os_ui():
         
         # Preferencias de ventanas y animaciones
         ["gsettings", "set", "org.gnome.desktop.background", "show-desktop-icons", "false"],
-        ["gsettings", "set", "org.gnome.desktop.wm.preferences", "button-layout", "''"],
+        ["gsettings", "set", "org.gnome.desktop.wm.preferences", "button-layout", "true"],
         ["gsettings", "set", "org.gnome.desktop.wm.preferences", "auto-raise", "false"],
         ["gsettings", "set", "org.gnome.desktop.interface", "enable-animations", "false"],
         ["gsettings", "set", "org.gnome.desktop.interface", "enable-hot-corners", "false"],
