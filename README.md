@@ -62,4 +62,4 @@ powershell -ExecutionPolicy Bypass -NoProfile -Command "$env:TV_PASS = Read-Host
 ## 📜 Licencia
 
 Este proyecto está bajo la Licencia **GNU General Public License v3.0 (GPL-3.0)** - ver el archivo [LICENSE](LICENSE) para más detalles[cite: 3, 4].
-Creado y mantenido por [@mbenseghir](https://github.com/mbenseghir)[cite: 3]. Cualquier modificación o distribución de este código debe mantenerse libre y de código abierto bajo los mismos términos[cite: 3].
+Creado y mantenido por [@mbenseghir](https://github.com/mbenseghir)[cite: 3]. Cualquier modificación o distribución de este código debe mantenerse libre y de código abierto bajo los mismos términos.
