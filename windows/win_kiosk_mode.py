@@ -471,7 +471,9 @@ def setup_desktop_ui():
         smart_set_reg(winreg.HKEY_CURRENT_USER, r"Control Panel\Desktop", "LogPixels", 96, winreg.REG_DWORD)
         smart_set_reg(winreg.HKEY_CURRENT_USER, r"Control Panel\Desktop", "Win8DpiScaling", 1, winreg.REG_DWORD)
 
-        # 3.5 Auto-ocultar la barra de tareas
+        # 3.5 Auto-ocultar la barra de tareas (Soporte nativo Win 11 24H2 y fallback Legacy)
+        smart_set_reg(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarAutoHide", 1, winreg.REG_DWORD)
+        
         for stuck in [r"Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3", 
                       r"Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects2"]:
             try:
@@ -1233,11 +1235,12 @@ def setup_amp_winoff():
             try:
                 download_file(url, installer)
                 logging.info("Instalando AMP WinOFF silenciosamente...")
-                cmd_install = f'"{installer}" /SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LANG=spanish'
+                # FIX: Parámetros más agresivos para Windows 11
+                cmd_install = f'"{installer}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /NOCANCEL'
                 try:
                     subprocess.run(cmd_install, shell=True, timeout=35)
                 except subprocess.TimeoutExpired:
-                    pass
+                    logging.warning("El instalador excedió el tiempo. Forzando cierre...")
 
                 time.sleep(2)
                 subprocess.run("taskkill /f /im WinOFF.exe", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -1291,20 +1294,21 @@ LastRun=0
         smart_set_reg(winreg.HKEY_LOCAL_MACHINE, run_key, "AMP WinOFF", f'"{winoff_exe}"', winreg.REG_SZ)
         smart_set_reg(winreg.HKEY_CURRENT_USER, run_key, "AMP WinOFF", f'"{winoff_exe}"', winreg.REG_SZ)
 
+        # FIX: Eliminación forzada de la tarea antigua y re-creación nativa garantizada
         task_name = "Admira_Daily_Power_Task"
-        if not scheduled_task_exists(task_name):
-            param_modo = "/s" if CONFIG["WINOFF_MODO"].upper() == "POWEROFF" else "/r"
-            cmd_action = f"shutdown.exe {param_modo} /f /t 60"
-            create_task = (
-                f'schtasks /create /tn "{task_name}" '
-                f'/tr "{cmd_action}" '
-                f'/sc daily /st {CONFIG["WINOFF_HORA"]} '
-                f'/ru "SYSTEM" /rl HIGHEST /f'
-            )
-            run_cmd(create_task)
-            logging.info(f"Respaldo en Task Scheduler programado para apagarse a las {CONFIG['WINOFF_HORA']}.")
-        else:
-            logging.info(f"  [OMITIDO] Tarea diaria '{task_name}' ya programada.")
+        param_modo = "/s" if CONFIG["WINOFF_MODO"].upper() == "POWEROFF" else "/r"
+        cmd_action = f"shutdown.exe {param_modo} /f /t 60"
+        
+        run_cmd(f'schtasks /delete /tn "{task_name}" /f')
+        create_task = (
+            f'schtasks /create /tn "{task_name}" '
+            f'/tr "{cmd_action}" '
+            f'/sc daily /st {CONFIG["WINOFF_HORA"]} '
+            f'/ru "SYSTEM" /rl HIGHEST /f'
+        )
+        run_cmd(create_task)
+        logging.info(f"Respaldo en Task Scheduler programado para apagarse a las {CONFIG['WINOFF_HORA']}.")
+
     except Exception as exc:
         logging.error(f"[ERROR EN setup_amp_winoff]: {exc}", exc_info=True)
 
@@ -1324,7 +1328,8 @@ def setup_nettime():
             try:
                 download_file(url, installer)
                 logging.info("Instalando NetTime silenciosamente...")
-                run_cmd(f'"{installer}" /SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART')
+                # FIX: Parámetros más agresivos
+                run_cmd(f'"{installer}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /NOCANCEL')
             except Exception as exc:
                 logging.error(f"Error descargando/instalando NetTime: {exc}")
                 return
@@ -1396,11 +1401,11 @@ LogLevel=1
             except Exception:
                 pass
 
-        # Si el servicio no existe en el sistema, forzar registro mediante CLI de NetTime
+        # FIX: Instalación del servicio mediante PowerShell
         chk_svc = subprocess.run("sc query NetTime", shell=True, capture_output=True, text=True, errors="ignore")
         if "1060" in chk_svc.stdout or "1060" in chk_svc.stderr:
             if nettime_exe.is_file():
-                subprocess.run(f'"{nettime_exe}" /install', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                run_powershell(f'Start-Process -FilePath "{nettime_exe}" -ArgumentList "/install" -Wait -WindowStyle Hidden')
                 time.sleep(2)
 
         chk_nt = subprocess.run("sc query NetTime", shell=True, capture_output=True, text=True, errors="ignore")
@@ -1552,6 +1557,10 @@ def main():
         logging.info(" PROCESO COMPLETADO EXITOSAMENTE                                ")
         logging.info(f" Registro de auditoría guardado en: {LOG_FILE}                  ")
         logging.info("=================================================================")
+        
+        # FIX: REINICIO AUTOMÁTICO DE 10 SEGUNDOS AL FINALIZAR
+        logging.info("=== REINICIANDO SISTEMA EN 10 SEGUNDOS PARA APLICAR CAMBIOS === ")
+        run_cmd("shutdown /r /t 10 /c \"Kiosko configurado. Reiniciando para aplicar cambios de entorno...\"")
 
     except Exception as exc:
         logging.critical(f"FATAL ERROR NO CONTROLADO EN main(): {exc}", exc_info=True)
