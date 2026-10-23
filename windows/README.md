@@ -20,12 +20,12 @@ $python = Join-Path $dir "python.exe"
 $script = Join-Path $dir "win_kiosk.py"
 
 if (-not (Test-Path $python)) {
-    $url = "[https://www.python.org/ftp/python/3.8.10/python-3.8.10-embed-amd64.zip](https://www.python.org/ftp/python/3.8.10/python-3.8.10-embed-amd64.zip)"
-    Invoke-WebRequest -Uri $url -OutFile $zip
-    Expand-Archive -Path $zip -DestinationPath $dir -Force
+    $url = "https://www.python.org/ftp/python/3.8.10/python-3.8.10-embed-amd64.zip"
+    Invoke-WebRequest -Uri $url -OutFile $zip
+    Expand-Archive -Path $zip -DestinationPath $dir -Force
 }
 
-$urlScript = "[https://raw.githubusercontent.com/mbenseghir/py-sys-optimizer/main/windows/win_kiosk_mode.py](https://raw.githubusercontent.com/mbenseghir/py-sys-optimizer/main/windows/win_kiosk_mode.py)"
+$urlScript = "https://raw.githubusercontent.com/mbenseghir/py-sys-optimizer/main/windows/win_kiosk_mode.py"
 
 Invoke-WebRequest -Uri $urlScript -OutFile $script
 
