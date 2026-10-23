@@ -16,6 +16,7 @@ Ideal para administradores de sistemas que necesitan desplegar configuraciones r
 Configura automáticamente modo kiosko, energía 24/7, silenciado total y software de cartelería digital sin instalar Python previamente.
 
 Abre **PowerShell como Administrador** y ejecuta:
+
 ```powershell
 $env:TV_PASS = Read-Host "Introduce la clave de TeamViewer"
 
