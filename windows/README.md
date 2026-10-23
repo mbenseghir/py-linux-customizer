@@ -38,3 +38,17 @@ Invoke-WebRequest -Uri $urlScript -OutFile $script
 * **Silenciado Total:** Apaga Firewall, Windows Defender, Windows Update y el Centro de Notificaciones.
 * **Software:** Descarga e instala en silencio Admira Player, TeamViewer (con la clave introducida), AMP WinOFF (apagado diario a las 22:00 h) y NetTime.
 * **Auto-Recuperación:** Watchdog centinela cada 1 min para relanzar Admira si se cierra, y reinicio automático en 2 segundos ante pantallazos azules (BSOD).
+
+### 🧹 Limpieza post-instalación (Opcional)
+Una vez que el script haya terminado con éxito, puedes liberar espacio y borrar los instaladores temporales que se descargaron de fondo ejecutando este comando:
+```powershell
+Remove-Item -Path "$env:TEMP\AdmiraSetup.exe", "$env:TEMP\TeamViewer_Setup.exe", "$env:TEMP\WinOFFSetup.exe", "$env:TEMP\NetTimeSetup*.exe", "$env:TEMP\py_runtime" -Recurse -Force -ErrorAction SilentlyContinue
+```
+
+### ⚠️ Solución de problemas
+Si la ejecución falla mostrando errores internos de Python (como `ModuleNotFoundError`, módulos no encontrados o excepciones de ejecución), es muy probable que un intento anterior se haya interrumpido. Esto provoca que el entorno portátil de Python quede corrupto o a medio extraer en la memoria temporal del sistema.
+
+Para solucionarlo y forzar una instalación limpia, purga el directorio temporal ejecutando este comando en PowerShell y vuelve a lanzar el script principal:
+```powershell
+Remove-Item -Path "$env:TEMP\py_runtime" -Recurse -Force
+```
